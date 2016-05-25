@@ -78,6 +78,7 @@ public class GhostEffect : MonoBehaviour
     private float mLastEffectTime = 0f;
 
     private SkinnedMeshRenderer[] mSkinnedMeshRenders = null;
+    private MeshFilter[] mMeshFilters = null;
     private Material mEffectMaterial = null;
     private GhostEffectPool mGhostEffectPool = null;
 
@@ -85,6 +86,7 @@ public class GhostEffect : MonoBehaviour
     void Start()
     {
         mSkinnedMeshRenders = gameObject.GetComponentsInChildren<SkinnedMeshRenderer>();
+        mMeshFilters = gameObject.GetComponentsInChildren<MeshFilter>();
         mGhostEffectPool = new GhostEffectPool();
         mLastEffectTime = Time.time;
         CreateMaterial();
@@ -130,15 +132,29 @@ public class GhostEffect : MonoBehaviour
             Mesh mesh = gse.CurMesh;
             skinnedMeshRender.BakeMesh(mesh);
 
-            MeshFilter meshFilter = gse.gameObject.AddMissingComponent<MeshFilter>();
-            meshFilter.sharedMesh = mesh;
-            MeshRenderer meshRender = gse.gameObject.AddMissingComponent<MeshRenderer>();
-            if(!gse.HasEffectMaterial)
-                meshRender.material = mEffectMaterial;
-            gse.StartEffect(liveTime, showTime, colorPropName);
-            gse.transform.position = skinnedMeshRender.transform.position;
-            gse.transform.rotation = skinnedMeshRender.transform.rotation;
-            mGhostEffectPool.AddUsedObj(gse);
+            CreateEffect(gse, mesh, skinnedMeshRender.transform);
         }
+
+        for(int i = 0; mMeshFilters != null && i < mMeshFilters.Length; ++i)
+        {
+            GhostShowEffect gse = mGhostEffectPool.GetOneUnUsedObj();
+            Mesh mesh = gse.CurMesh;
+            mesh = mMeshFilters[i].mesh;
+
+            CreateEffect(gse, mesh, mMeshFilters[i].transform);
+        }
+    }
+
+    private void CreateEffect(GhostShowEffect gse, Mesh mesh, Transform trans)
+    {
+        MeshFilter meshFilter = gse.gameObject.AddMissingComponent<MeshFilter>();
+        meshFilter.sharedMesh = mesh;
+        MeshRenderer meshRender = gse.gameObject.AddMissingComponent<MeshRenderer>();
+        if (!gse.HasEffectMaterial)
+            meshRender.material = mEffectMaterial;
+        gse.StartEffect(liveTime, showTime, colorPropName);
+        gse.transform.position = trans.position;
+        gse.transform.rotation = trans.rotation;
+        mGhostEffectPool.AddUsedObj(gse);
     }
 }

@@ -45,11 +45,11 @@ public class GhostShowEffect : MonoBehaviour
         if (!mIsShow && time > mShowTime)
         {
             Color col = mMaterial.GetColor(colorPropName);
-            col.a = 0.5f;
+            col.a = (mLifeTime - mShowTime) / mLifeTime;
             mMaterial.SetColor(colorPropName, col);
             mIsShow = true;
         }
-        else
+        else if(mIsShow)
         {
             Color col = mMaterial.GetColor(colorPropName);
             col.a = (mLifeTime - mShowTime) - time / mLifeTime * (mLifeTime - mShowTime);
